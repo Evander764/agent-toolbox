@@ -20,6 +20,7 @@ show_cmd agent-reach
 show_cmd uv
 show_cmd pipx
 show_cmd mcporter
+show_cmd yt-dlp
 
 echo
 if command -v agent-reach >/dev/null 2>&1; then
@@ -59,3 +60,4 @@ echo "Key source paths:"
 echo "- /Users/evander/Documents/Software/必备工具/Agent-Reach"
 echo "- /Users/evander/Documents/Software/Viral Brief Plus"
 echo "- /Users/evander/Documents/Great things of AI/25IP开源干货-精华沉淀/skills/xhs-scraping"
+echo "- ~/.codex/skills/xhs-auto-deploy/scripts/download-blogger-videos.py"
