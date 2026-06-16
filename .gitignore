@@ -1,0 +1,27 @@
+.DS_Store
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# Local runtime state
+teams/
+tmp/
+temp/
+logs/
+*.log
+
+# Common dependencies and build output
+node_modules/
+.venv/
+venv/
+__pycache__/
+dist/
+build/
+.cache/
+
