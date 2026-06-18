@@ -13,6 +13,10 @@ outside one local project.
 - `skills/team`: a low-typing multi-agent coordination skill. It lets multiple
   AI chat windows work as a small team with Chinese role names:
   `规划师`, `协调师`, `执行人`, and `审核官`.
+- `skills/think`: a short `$think` second-brain skill for adversarial
+  multi-agent reasoning with first principles, entropy analysis, Munger-style
+  mental models, falsification, experiments, and reviewable self-evolution
+  proposals.
 
 ### Tools
 
@@ -55,6 +59,22 @@ remaining roles:
 
 The workflow keeps durable state in a shared team folder and uses packet-based
 handoffs so agents do not depend on hidden chat history.
+
+## Current Skill: think
+
+Use:
+
+```text
+$think <goal or question>
+```
+
+The skill creates a structured thinking loop:
+
+- compress the raw input into a problem brief;
+- blockize facts, assumptions, judgments, variables, risks, and actions;
+- run independent first-principles, entropy, mental-model, and evidence lenses;
+- force falsification and anti-consensus checks;
+- produce a smallest useful experiment and a reviewable update proposal.
 
 ## Repository Policy
 

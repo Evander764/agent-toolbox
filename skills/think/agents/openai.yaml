@@ -1,0 +1,4 @@
+interface:
+  display_name: "Think"
+  short_description: "Multi-agent first-principles thinking room"
+  default_prompt: "Use $think to examine this goal with first principles, falsification, entropy, experiments, and update proposals."
