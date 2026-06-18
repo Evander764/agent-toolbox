@@ -28,12 +28,16 @@ or:
 /team 项目：<目标>
 ```
 
-After the team shell exists, the first role prompt must be a self-contained
-copy block:
+After the team shell exists, use automatic Codex thread launch when the thread
+tools are available. The user should not need to copy a first-role prompt.
+
+If automatic thread launch is unavailable or fails, fall back to one
+self-contained copy block:
 
 ```text
 /team 规划师
 团队：<team_id>
+团队目录：<absolute team folder path>
 ```
 
 If no identity is specified, `/team` means `规划师`.
@@ -79,6 +83,7 @@ teams/
     review.md
     handoff.md
     message-queue.md
+    thread-routing.md
     agents/
     inbox/
     packets/
@@ -126,16 +131,23 @@ The first active identity is always `规划师`.
 
 `项目：<目标>` or `/team 项目：<目标>` creates only the team shell and a ready
 task for `规划师`. It must not tell the user to create `协调师`, `执行人`, or
-`审核官` yet. The reply must give one next prompt only, and that prompt must
-be self-contained:
+`审核官` yet. When `create_thread` is available, it must automatically create a
+new `规划师` Codex thread and send a self-contained launch message.
+
+The automatic `规划师` launch message must include:
 
 ```text
 /team 规划师
 团队：<team_id>
+团队目录：<absolute team folder path>
 ```
 
-Always include the team id in this first next-role prompt. The user should be
-able to copy the block into a new chat window without adding context.
+Always include the team id and absolute team folder path in any role launch
+message. The receiver must be able to act without hidden current-team state.
+
+If `create_thread` is unavailable or fails, reply with exactly one fallback
+copy block for `规划师`. The fallback block must include the role, team id, and
+absolute team folder path.
 
 When the user sends `/team` without an explicit role, treat it as:
 
@@ -151,35 +163,31 @@ When `规划师` joins for the first time, it must:
 4. create `artifacts/plan.md`;
 5. create `artifacts/dispatch.md`;
 6. update `board.md`, `status.md`, and `handoff.md`;
-7. generate the next-role prompts for the user.
+7. create one plan or dispatch packet for `协调师`;
+8. automatically create or wake the `协调师` thread for that packet.
 
-The next-role prompts must be separate, copyable blocks, in this order:
+Do not create `协调师`, `执行人`, and `审核官` in parallel during startup. The
+team advances through a chain, and each next role is created or woken only
+after a packet exists for that one receiver:
 
-- 协调师：
+```text
+项目 -> 规划师 -> 协调师 -> 执行人 -> 审核官 -> 协调师
+```
 
-  ```text
-  /team 协调师
-  团队：<team_id>
-  ```
+The default chain means:
 
-- 执行人：
+- `项目：<目标>` creates the team shell and launches only `规划师`.
+- `规划师` finishes the plan, creates one plan packet, then launches or wakes
+  only `协调师`.
+- `协调师` reads the plan packet, creates one execution packet, then launches or
+  wakes only one `执行人`.
+- `执行人` finishes assigned work, creates one completion packet, then launches
+  or wakes `审核官` when review is needed.
+- `审核官` creates one verdict packet and routes it back to `协调师`.
 
-  ```text
-  /team 执行人
-  团队：<team_id>
-  ```
-
-- 审核官：
-
-  ```text
-  /team 审核官
-  团队：<team_id>
-  ```
-
-Do not ask the user to invent role prompts or write `身份：...` manually. The
-`规划师` must output all three standard prompts after the initial plan exists.
-The prompt text should stay short so the user can copy and paste it directly
-into new chat windows.
+Do not ask the user to invent role prompts or write `身份：...` manually. Manual
+copy blocks are only a fallback when thread creation or direct thread delivery
+is unavailable or blocked.
 
 ## Goal-Until-Done Mode
 
@@ -374,29 +382,73 @@ Whenever feedback affects the plan:
 `规划师` should not monitor every raw status update. It should process curated
 plan feedback. This keeps it informed without turning it into the team router.
 
+## Thread Routing State
+
+Track automatic Codex thread routing in `thread-routing.md`:
+
+```markdown
+| role | thread_id | thread_title | status | last_packet | updated_at |
+| --- | --- | --- | --- | --- | --- |
+| 规划师 |  |  | pending |  | <ISO time> |
+| 协调师 |  |  | pending |  | <ISO time> |
+| 执行人 |  |  | pending |  | <ISO time> |
+| 审核官 |  |  | pending |  | <ISO time> |
+```
+
+Allowed routing statuses:
+
+- `pending`
+- `created`
+- `sent`
+- `acknowledged`
+- `blocked`
+
+`thread-routing.md` is not an agent profile. It exists only to remember which
+Codex thread was created or targeted before the receiver has registered in
+`agents/`. Once the receiver registers, its `agents/<agent_id>.md` profile
+should record the same `thread_id` when visible or discoverable.
+
 ## Direct Thread Routing
 
-Use direct thread routing only as the push layer for a packet.
+Use direct thread routing only as the push layer for a packet. When Codex thread
+tools such as `create_thread`, `send_message_to_thread`, `read_thread`, and
+`list_projects` are available, direct thread routing is also the role-launch
+layer.
 
 Actions:
 
 1. Create or locate the packet first.
-2. Check `agents/` for the target teammate profile and any recorded
-   `thread_id`.
-3. If no `thread_id` is recorded, search recent Codex threads by project name,
-   team_id, role name, recent task id, or evidence files the teammate edited.
-4. Read the likely thread before sending. Confirm it is the target teammate by
-   matching role, team folder, task board, cwd, or recent handoff content.
-5. Send one concise direct message to that one thread. Include `packet_id`,
-   action required, and source file paths.
+2. Check `thread-routing.md` and `agents/` for the target role or agent and any
+   recorded `thread_id`.
+3. If a `thread_id` is recorded, read the thread before sending. Confirm it is
+   the target teammate by matching role, team id, team folder, task board, cwd,
+   or recent handoff content.
+4. If no confirmed target thread exists and `create_thread` is available, create
+   a new Codex thread for that one receiver. Use `list_projects` when available:
+   if the current workspace belongs to a saved Codex project, use that project
+   with the local environment; otherwise use a projectless target. The initial
+   prompt must be self-contained:
+
+   ```text
+   /team <目标身份>
+   团队：<team_id>
+   团队目录：<absolute team folder path>
+   packet：<packet_id>
+   请读取 packet、board、status、message-queue 和 thread-routing 后，只处理分配给你的下一步。
+   ```
+
+5. If a confirmed existing thread is used and `send_message_to_thread` is
+   available, send one concise direct message to that one thread. Include
+   `packet_id`, action required, and source file paths.
 6. Also write the packet link or summary to `inbox/<target-identity>.md` for
    durability.
-7. Update `message-queue.md`, `handoff.md`, and `status.md`, including the
-   target `thread_id`.
+7. Update `thread-routing.md`, `message-queue.md`, `handoff.md`, and
+   `status.md`, including the target `thread_id` when known.
 
-If the target teammate's thread cannot be found, do not say the teammate has
-been notified. Write the packet and inbox message, mark the queue row
-`blocked`, and tell the user direct routing failed.
+If the target teammate's thread cannot be found or created, do not say the
+teammate has been notified. Write the packet and inbox message, mark the queue
+row and routing row `blocked`, and give the user one fallback copy block with
+the role, team id, absolute team folder path, and packet id.
 
 ## Commands
 
@@ -435,12 +487,18 @@ Actions:
 6. Write `status.md` with the current phase.
 7. Write empty `planner-feedback.md` with a heading and no entries.
 8. Write empty `message-queue.md` with the queue table header.
-9. Create `packets/`.
-10. Reply briefly with:
+9. Write `thread-routing.md` with rows for `规划师`, `协调师`, `执行人`, and
+   `审核官`.
+10. Create `packets/`.
+11. If `create_thread` is available, automatically create a `规划师` thread with
+    a self-contained launch message. Record the returned thread id and title in
+    `thread-routing.md`.
+12. Reply briefly with:
    - team_id;
    - team folder path;
-   - one self-contained copyable prompt for `规划师` only, including the
-     explicit role and `团队：<team_id>`.
+   - `规划师` thread id when automatic launch succeeded;
+   - otherwise one self-contained fallback copy block for `规划师`, including
+     the explicit role, `团队：<team_id>`, and `团队目录：<absolute team folder path>`.
 
 `项目：<目标>` must not decide the full project plan, acceptance criteria, or
 implementation path. If the user includes success or quality criteria, record
@@ -516,6 +574,7 @@ Actions:
    - `board.md`
    - `status.md`
    - `message-queue.md`
+   - `thread-routing.md`
    - all files under `agents/`
    - relevant files under `inbox/`
    - relevant files under `packets/`
@@ -524,7 +583,8 @@ Actions:
    `message-queue.md`.
 7. If the canonical identity is `规划师` and planner identity has not been
    established yet, complete the startup flow in the same turn: register,
-   create the first planning artifacts, and generate the next-role prompts.
+   create the first planning artifacts, create one plan packet, and automatically
+   route that packet to `协调师`.
 8. Work according to the identity rules.
 9. Update the shared files.
 10. End with:
@@ -532,7 +592,7 @@ Actions:
    - completed work;
    - blockers;
    - files updated;
-   - next recommended `/team` prompt.
+   - next automated route or fallback copy block if routing failed.
 
 If the current chat thread id is visible or discoverable through available
 tools, record it in the agent profile. If it cannot be discovered, leave
@@ -545,7 +605,7 @@ Continue the active team.
 Actions:
 
 1. Locate the active team.
-2. Read team state, board, and message queue.
+2. Read team state, board, message queue, and thread routing.
 3. Infer the next best identity:
    - if no `artifacts/project-instructions.md` exists, act as `规划师`;
    - if no plan exists, act as `规划师`;
@@ -564,15 +624,15 @@ Summarize the active team.
 
 Actions:
 
-1. Read `team.md`, `board.md`, `message-queue.md`, `status.md`,
-   `feedback.md`, `planner-feedback.md`, and `review.md`.
+1. Read `team.md`, `board.md`, `message-queue.md`, `thread-routing.md`,
+   `status.md`, `feedback.md`, `planner-feedback.md`, and `review.md`.
 2. Report:
    - current phase;
    - active agents;
    - claimed tasks;
    - queued or blocked packets;
    - blockers;
-   - next recommended `/team` prompt.
+   - next automated route or fallback copy block if routing is blocked.
 
 ### `收口`
 
@@ -609,6 +669,8 @@ Responsibilities:
 - keep `status.md` accurate after delivery and acknowledgements;
 - route packets to the next identity based on existing plan, review, or blocker
   content.
+- create or wake exactly one next-role Codex thread through Direct Thread
+  Routing when a packet needs action.
 - classify feedback as plan-affecting or not, using the feedback categories
   above.
 - in goal-until-done mode, keep the execution/review loop moving until accepted
@@ -639,8 +701,8 @@ Responsibilities:
 - create or update `artifacts/project-instructions.md`;
 - create or update `artifacts/plan.md`;
 - create or update `artifacts/dispatch.md`;
-- generate copyable `/team 协调师`, `/team 执行人`, and `/team 审核官`
-  prompts after the initial plan exists;
+- create one plan or dispatch packet for `协调师` after the initial plan exists
+  and route it through Direct Thread Routing;
 - read and resolve entries in `planner-feedback.md`;
 - split work into board tasks;
 - define what each role needs to know for each work package;
@@ -669,7 +731,8 @@ one response when possible:
 1. mark `确立规划师身份` as done;
 2. create the first project instructions, plan, and dispatch files;
 3. unblock the first useful downstream task;
-4. give the user the three next-role prompts as copyable blocks.
+4. create one plan packet for `协调师` and automatically create or wake that
+   thread.
 
 `artifacts/dispatch.md` must include recipient-specific slices, for example:
 
@@ -680,10 +743,11 @@ one response when possible:
 | W1-review | 审核官 | acceptance checklist | plan.md#acceptance | accept/revise verdict |
 ```
 
-When a ready `协调师` exists, `规划师` sends one plan packet to `协调师`.
-`规划师` must not direct-message `执行人` and `审核官` separately unless no
-`协调师` exists and progress would otherwise stop. If forced to use this
-fallback, record it in `handoff.md`.
+After the initial plan exists, `规划师` sends one plan packet to `协调师` and
+routes it through Direct Thread Routing. `规划师` must not create or message
+`执行人` and `审核官` separately during startup. If routing to `协调师` is blocked,
+record the blocker in `thread-routing.md`, `message-queue.md`, and `handoff.md`,
+then give the user one fallback copy block for `协调师`.
 
 When `规划师` receives a `plan_feedback` packet, it must either:
 
@@ -714,9 +778,10 @@ Responsibilities:
 If the plan is missing or unclear, do not improvise a large plan. Write the
 blocker and recommend `规划师`.
 
-When completing assigned work, `执行人` creates one completion packet for
-`审核官`. If no `审核官` exists, create the packet for `协调师`. Do not report
-the same result to multiple roles directly.
+When completing assigned work that needs review, `执行人` creates one completion
+packet for `审核官` and routes it through Direct Thread Routing. A missing
+`审核官` thread means create or wake that role; it does not skip review. Do not
+report the same result to multiple roles directly.
 
 If blocked by unclear requirements, create one blocker packet for `协调师`.
 `执行人` does not decide whether the blocker should go to `规划师` or another
@@ -825,9 +890,10 @@ When ending a turn, update `handoff.md` as a chronological log:
 ```
 
 `handoff.md` does not make another agent act. If a specific role should act
-next, create a packet and queue row. If that role has a known or discoverable
-chat thread, send exactly one direct message for that packet and mark the queue
-row `sent`.
+next, create a packet and queue row, then use Direct Thread Routing to create or
+wake exactly one receiver. If routing succeeds, mark the queue row `sent`. If
+routing fails, mark it `blocked` and provide one self-contained fallback copy
+block.
 
 ## Minimal Replies
 
@@ -837,21 +903,22 @@ For `项目：` or `/team 项目：`, reply with only:
 
 - team_id;
 - folder path;
-- one self-contained copyable prompt for `规划师`, not the bare `/team` alias.
+- `规划师` thread id if automatic launch succeeded;
+- otherwise one self-contained fallback copy block for `规划师`.
 
 For `/team` as `规划师` on first join, reply with only:
 
 - joined identity;
 - plan files created;
 - blocked items or assumptions;
-- copyable prompts for `协调师`, `执行人`, and `审核官`.
+- `协调师` route status or one fallback copy block if routing failed.
 
 For `/team <identity>` or `身份：`, reply with only:
 
 - joined identity;
 - claimed task;
 - result;
-- next `/team` prompt.
+- next automated route status or one fallback copy block if routing failed.
 
 ## Safety
 
