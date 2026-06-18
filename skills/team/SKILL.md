@@ -28,13 +28,17 @@ or:
 /team 项目：<目标>
 ```
 
-After the team shell exists, the first role prompt is:
+After the team shell exists, the first role prompt must be a self-contained
+copy block:
 
 ```text
-/team
+/team 规划师
+团队：<team_id>
 ```
 
 If no identity is specified, `/team` means `规划师`.
+Do not output only `/team` as the next prompt after creating a project shell;
+that forces the user and future agents to rely on hidden current-team state.
 
 ## Core Principle
 
@@ -122,18 +126,16 @@ The first active identity is always `规划师`.
 
 `项目：<目标>` or `/team 项目：<目标>` creates only the team shell and a ready
 task for `规划师`. It must not tell the user to create `协调师`, `执行人`, or
-`审核官` yet. The reply must give one next prompt only:
+`审核官` yet. The reply must give one next prompt only, and that prompt must
+be self-contained:
 
 ```text
-/team
-```
-
-If the current active team may be ambiguous, include the team id:
-
-```text
-/team
+/team 规划师
 团队：<team_id>
 ```
+
+Always include the team id in this first next-role prompt. The user should be
+able to copy the block into a new chat window without adding context.
 
 When the user sends `/team` without an explicit role, treat it as:
 
@@ -178,6 +180,58 @@ Do not ask the user to invent role prompts or write `身份：...` manually. The
 `规划师` must output all three standard prompts after the initial plan exists.
 The prompt text should stay short so the user can copy and paste it directly
 into new chat windows.
+
+## Goal-Until-Done Mode
+
+When the user defines what counts as good, successful, acceptable, or finished
+for a team project, the team enters goal-until-done mode. The specific project
+goal and quality criteria become the stop condition for the whole process.
+
+This applies to any project type, not only the examples below. Different
+projects may have different success criteria. The user's stated criteria are
+the source of truth.
+
+In this mode:
+
+- `规划师` records the criteria in `artifacts/project-instructions.md` and
+  turns them into observable evidence gates, review checks, and an exploration
+  matrix of safe runnable paths.
+- `协调师` keeps routing the next useful packet after each execution or review
+  result. It must not close the loop merely because one prototype, one plan, or
+  one attempt exists.
+- `执行人` runs every safe runnable path that could plausibly satisfy the
+  criteria, compares outputs, records attempts, and keeps iterating until a path
+  meets the gates or no safe runnable path remains.
+- `审核官` reviews against the user's criteria, not against effort spent. If the
+  output is partial, generic, unstable, aesthetically weak, or missing evidence,
+  the verdict is `needs-revision` and routes back through `协调师`.
+
+"Every safe runnable path" means every path that is available in the local
+environment or approved project scope without missing credentials, new paid
+external services, irreversible actions, broad destructive rewrites, or
+high-risk/high-cost work. If a path needs unavailable keys, accounts, paid
+services, user decisions, or unsafe actions, record it as blocked or unrunnable;
+do not count it as success.
+
+The team may stop only when one of these is true:
+
+- `审核官` accepts that the user's criteria are met and cites concrete evidence;
+- no safe runnable path remains and the blocker is written to `feedback.md`,
+  `status.md`, and a blocker packet;
+- the user explicitly stops, changes the goal, or changes the criteria.
+
+Default project-type examples:
+
+- Video projects: if the standard is "能做出非常好看的简笔画视频", success
+  requires an actually rendered playable video, final file path, duration,
+  resolution, frame rate, visual/aesthetic review, and evidence that the useful
+  rendering/animation paths were attempted or ruled out.
+- Article generation projects: if the standard is "稳定性强、AI 味非常低",
+  success requires multiple sample generations, consistency checks across
+  samples, style/humanization review, and rejection of generic AI phrasing,
+  empty structure, slogan-like transitions, or unstable tone.
+- Other project types: `规划师` must derive domain-specific evidence gates from
+  the user's stated target and treat those gates as the finish line.
 
 ## Information Flow Protocol
 
@@ -363,6 +417,7 @@ Actions:
 3. Write `teams/.current` with the active `team_id`.
 4. Write `team.md` with:
    - raw project goal exactly as given by the user;
+   - any raw success, quality, or finish criteria exactly as given by the user;
    - team_id;
    - created time;
    - default roles;
@@ -384,11 +439,13 @@ Actions:
 10. Reply briefly with:
    - team_id;
    - team folder path;
-   - the next `/team` prompt for `规划师` only.
+   - one self-contained copyable prompt for `规划师` only, including the
+     explicit role and `团队：<team_id>`.
 
 `项目：<目标>` must not decide the full project plan, acceptance criteria, or
-implementation path. It only records the raw goal and creates a ready task for
-`规划师` to establish identity and write `artifacts/project-instructions.md`.
+implementation path. If the user includes success or quality criteria, record
+them verbatim as raw criteria only. `规划师` owns turning them into evidence
+gates and an exploration matrix in `artifacts/project-instructions.md`.
 
 Do not ask follow-up questions unless the project goal is unusably vague or the
 next step is risky.
@@ -493,6 +550,8 @@ Actions:
    - if no `artifacts/project-instructions.md` exists, act as `规划师`;
    - if no plan exists, act as `规划师`;
    - if unsent packet queue rows exist, act as `协调师`;
+   - if goal-until-done criteria exist and accepted evidence is missing, choose
+     the role that advances the next exploration, execution, or review loop;
    - if ready work exists, act as `执行人`;
    - if completed work needs checking, act as `审核官`;
    - if conflicts exist, act as `协调师`.
@@ -523,9 +582,15 @@ Actions:
 
 1. Check board completion.
 2. Check review results.
-3. Summarize artifacts.
-4. Update `status.md` and `handoff.md`.
-5. Clearly state remaining risks.
+3. Check whether the user's success criteria have accepted evidence, or whether
+   a true blocker/no-runnable-path state is documented.
+4. Summarize artifacts.
+5. Update `status.md` and `handoff.md`.
+6. Clearly state remaining risks.
+
+Do not finalize a goal-until-done project merely because a phase, prototype, or
+first attempt is complete. Finalize only after the criteria are accepted or the
+team has documented a real blocker that prevents further safe progress.
 
 ## Identity Rules
 
@@ -546,6 +611,9 @@ Responsibilities:
   content.
 - classify feedback as plan-affecting or not, using the feedback categories
   above.
+- in goal-until-done mode, keep the execution/review loop moving until accepted
+  evidence meets the user's criteria or a true blocker/no-runnable-path state is
+  documented.
 
 Non-responsibilities:
 
@@ -577,6 +645,8 @@ Responsibilities:
 - split work into board tasks;
 - define what each role needs to know for each work package;
 - define acceptance criteria;
+- convert user-defined success criteria into observable evidence gates;
+- create an exploration matrix of safe runnable paths and stop conditions;
 - list risks and dependencies.
 
 Project instructions must include:
@@ -586,6 +656,8 @@ Project instructions must include:
 - scope and non-goals;
 - expected artifacts;
 - acceptance criteria;
+- evidence gates for the user's success criteria;
+- exploration matrix of safe runnable paths, blocked paths, and stop conditions;
 - initial role/task split.
 
 Do not execute implementation tasks. If execution is trivial, still update the
@@ -632,6 +704,9 @@ Responsibilities:
 - read the packet assigned to this agent;
 - claim one ready task;
 - execute the task;
+- in goal-until-done mode, run the safe runnable paths assigned by the plan or
+  packet, continue to the next plausible path after failures, and record why
+  each path passed, failed, or was blocked;
 - write evidence into `status.md`;
 - write blockers into `feedback.md`;
 - create outputs under `artifacts/` when useful.
@@ -656,12 +731,14 @@ Responsibilities:
 - read project goal, plan, board, status, and artifacts;
 - read the completion packet assigned to this agent;
 - inspect completed work;
+- compare completed work against the user's success criteria and evidence gates;
 - write findings into `review.md`;
 - mark the reviewed task as accepted or needs revision;
 - create one verdict packet for `协调师`.
 
 Prioritize concrete defects, missing acceptance criteria, unverifiable claims,
-and unhandled blockers.
+unhandled blockers, unexplored safe runnable paths, and outputs that do not
+actually meet the stated goal.
 
 `审核官` owns the `/neat-freak` integration.
 
@@ -760,7 +837,7 @@ For `项目：` or `/team 项目：`, reply with only:
 
 - team_id;
 - folder path;
-- next `/team` prompt for `规划师`.
+- one self-contained copyable prompt for `规划师`, not the bare `/team` alias.
 
 For `/team` as `规划师` on first join, reply with only:
 

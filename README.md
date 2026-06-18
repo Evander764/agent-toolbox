@@ -33,16 +33,24 @@ Use:
 Then open a new chat and send:
 
 ```text
-/team
+/team 规划师
+团队：<team_id>
 ```
 
-Without an explicit role, `/team` defaults to `规划师`. The planner creates the
-first project plan and gives copyable prompts for the remaining roles:
+Without an explicit role, `/team` defaults to `规划师`, but the first role prompt
+should include the team id so the new chat does not rely on hidden state. The
+planner creates the first project plan and gives copyable prompts for the
+remaining roles:
 
 ```text
 /team 协调师
+团队：<team_id>
+
 /team 执行人
+团队：<team_id>
+
 /team 审核官
+团队：<team_id>
 ```
 
 The workflow keeps durable state in a shared team folder and uses packet-based
@@ -55,4 +63,3 @@ handoffs so agents do not depend on hidden chat history.
   project data.
 - Prefer short names and copyable commands.
 - Add a short README for each new skill or tool.
-
