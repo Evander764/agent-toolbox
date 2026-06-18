@@ -34,7 +34,34 @@ Break the problem into blocks:
 Keep the original user wording visible where it matters. Many bad conclusions
 come from silently changing the user's problem.
 
-## 3. Judgment
+## 3. Standards
+
+Create `standards.md` before role work begins:
+
+- user standards exactly as stated;
+- inferred success criteria;
+- evidence gates;
+- non-negotiable rejection criteria;
+- what counts as `accepted`, `needs-revision`, or `blocked`.
+
+The `Standards Judge` may tighten or clarify standards after the module split,
+but must not lower the user's bar for convenience.
+
+## 4. Modular Decomposition
+
+For complex tasks, break the problem into modules:
+
+- module name;
+- question it answers;
+- dependencies;
+- assigned roles;
+- acceptance gate;
+- recomposition order.
+
+Each module should be small enough for independent red-team, evidence, and
+judge review.
+
+## 5. Judgment
 
 Each role must make an independent judgment before reading the other roles'
 arguments. The judgment must contain:
@@ -45,7 +72,7 @@ arguments. The judgment must contain:
 - confidence level;
 - what would change the judgment.
 
-## 4. Falsification
+## 6. Falsification
 
 For every serious claim, generate the strongest counter-case:
 
@@ -57,7 +84,7 @@ For every serious claim, generate the strongest counter-case:
 
 Do not soften the counter-case to protect the original idea.
 
-## 5. Experiment
+## 7. Experiment
 
 Turn uncertainty into the smallest useful experiment:
 
@@ -71,7 +98,19 @@ Turn uncertainty into the smallest useful experiment:
 Prefer experiments that expose reality quickly over plans that merely feel
 complete.
 
-## 6. Feedback
+## 8. Judge Verdict
+
+Before final synthesis, `Standards Judge` must write `verdict.md`:
+
+- accepted modules;
+- rejected modules;
+- missing evidence;
+- revision requests;
+- final status.
+
+The Conductor cannot call the run complete without `accepted`.
+
+## 9. Feedback
 
 After an experiment or new evidence, update:
 
@@ -81,7 +120,7 @@ After an experiment or new evidence, update:
 - which model became more or less useful;
 - which assumption should be retired.
 
-## 7. Update
+## 10. Update
 
 Write proposed updates to `evolution-proposal.md`. Updates can target:
 
@@ -95,7 +134,7 @@ Write proposed updates to `evolution-proposal.md`. Updates can target:
 Do not write changes into the skill itself until the user explicitly approves
 the proposal.
 
-## 8. Next Input Loop
+## 11. Next Input Loop
 
 End every run with the next best input for the system:
 

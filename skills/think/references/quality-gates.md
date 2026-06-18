@@ -7,8 +7,12 @@ Use these gates before presenting a final thinking-room result.
 A run is not acceptable unless it contains:
 
 - a compressed problem brief;
+- a `standards.md` file with user-aligned pass/fail gates;
+- `thread-routing.md` showing real thread IDs, or `mode: simulated` with a
+  clear fallback explanation;
 - blockization into facts, assumptions, judgments, variables, risks, and action
   options;
+- module decomposition for complex tasks;
 - first-principles reduction;
 - entropy/system-decay analysis;
 - at least three relevant mental models, unless the task is trivial;
@@ -17,7 +21,20 @@ A run is not acceptable unless it contains:
 - at least one information gap;
 - a smallest useful experiment;
 - feedback/update path;
+- a `verdict.md` result from `Standards Judge`;
 - an `evolution-proposal.md` entry, even if the proposal is "no update".
+
+## Standards Judge Gate
+
+`Standards Judge` is mandatory. Final status can be:
+
+- `accepted`: every hard gate is met;
+- `needs-revision`: at least one required gate fails;
+- `blocked`: required evidence, permission, or context is missing.
+
+The Conductor must not present `needs-revision` or `blocked` work as complete.
+If the judge rejects a module, create a revision packet and route it before
+final synthesis.
 
 ## Anti-consensus Gates
 
@@ -44,6 +61,18 @@ When a claim depends on current or external reality:
 - state what remains unknown.
 
 Do not let confident language hide missing evidence.
+
+## Thread Gates
+
+Real multi-window mode requires:
+
+- one recorded thread id per active role;
+- one assigned output file per role;
+- role prompts that forbid editing other role files;
+- at least one `read_thread` check or explicit thread-result collection before
+  final synthesis.
+
+If these are missing, mark the run as simulated or incomplete.
 
 ## Experiment Gates
 

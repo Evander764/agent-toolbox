@@ -13,10 +13,10 @@ outside one local project.
 - `skills/team`: a low-typing multi-agent coordination skill. It lets multiple
   AI chat windows work as a small team with Chinese role names:
   `规划师`, `协调师`, `执行人`, and `审核官`.
-- `skills/think`: a short `$think` second-brain skill for adversarial
-  multi-agent reasoning with first principles, entropy analysis, Munger-style
-  mental models, falsification, experiments, and reviewable self-evolution
-  proposals.
+- `skills/think`: a short `$think` second-brain skill that can launch automatic
+  Codex agent windows for adversarial reasoning, modular decomposition, strict
+  standards judging, first principles, entropy analysis, Munger-style mental
+  models, falsification, experiments, and reviewable self-evolution proposals.
 
 ### Tools
 
@@ -72,8 +72,10 @@ The skill creates a structured thinking loop:
 
 - compress the raw input into a problem brief;
 - blockize facts, assumptions, judgments, variables, risks, and actions;
-- run independent first-principles, entropy, mental-model, and evidence lenses;
+- create role-specific Codex windows when thread tools are available;
+- run independent standards, decomposition, red-team, and evidence/model lenses;
 - force falsification and anti-consensus checks;
+- require a strict judge verdict before final synthesis;
 - produce a smallest useful experiment and a reviewable update proposal.
 
 ## Repository Policy

@@ -12,5 +12,6 @@ Current skills:
 
 - `team`: low-typing multi-agent coordination with `规划师`, `协调师`, `执行人`,
   and `审核官`.
-- `think`: short `$think` second-brain skill for first-principles,
-  entropy-aware, multi-agent adversarial reasoning and experiment design.
+- `think`: short `$think` second-brain skill for automatic Codex agent windows,
+  strict judging, first-principles, entropy-aware, multi-agent adversarial
+  reasoning, modular decomposition, and experiment design.
