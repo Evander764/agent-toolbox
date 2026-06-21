@@ -1,15 +1,21 @@
-# Think
+# Think Skill
 
-Short invocation:
+`$think` is a Codex second-brain skill for multi-window reasoning rooms,
+hard-standard extraction, adversarial review, project dispatch, mental-model
+selection, logic orchestration, and engineering governance.
 
-```text
-$think <goal or question>
+## Key Files
+
+- `SKILL.md`: skill entrypoint and operating contract.
+- `references/logic-orchestration.md`: state machine, dependencies, handoffs,
+  recovery ledger, and open-loop handling.
+- `references/engineering-governance.md`: scope, ownership, validation,
+  rollback, drift, and maintenance rules.
+- `scripts/new_session.py`: creates run folders and required artifacts.
+- `scripts/validate_models.py`: validates the skill package and model library.
+
+## Validate
+
+```bash
+python3 scripts/validate_models.py --self-test
 ```
-
-`think` is a second-brain Skill for automatic Codex multi-window reasoning. It
-uses a Conductor thread plus role windows for strict standards judging, systems
-decomposition, red-team critique, evidence/model analysis, falsification, and
-smallest-useful-experiment design.
-
-The Skill writes proposed improvements to `evolution-proposal.md` for review
-instead of silently rewriting itself.

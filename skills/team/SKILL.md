@@ -62,9 +62,11 @@ profiles or handoffs exist in the shared files.
 
 The shared folder is the durable record, but it is not always enough to trigger
 work. When a teammate already has a real chat window/thread, assigning work only
-by editing `inbox/` is insufficient. Work must move through the packet protocol;
-the responsible sender, normally `协调师`, sends the one-to-one direct message
-when thread-messaging tools are available.
+by editing `inbox/` is insufficient. If a target role has an actionable packet
+and no confirmed thread exists, `协调师` must create or confirm that role's
+independent Codex thread when thread tools are available, then send the
+one-to-one packet message and update routing state. `inbox/` is only the durable
+copy, or the fallback when thread creation/confirmation fails.
 
 ## Default Team Root
 
@@ -77,6 +79,7 @@ teams/
     team.md
     board.md
     status.md
+    project-map.md
     decisions.md
     feedback.md
     planner-feedback.md
@@ -162,9 +165,11 @@ When `规划师` joins for the first time, it must:
 3. create `artifacts/project-instructions.md`;
 4. create `artifacts/plan.md`;
 5. create `artifacts/dispatch.md`;
-6. update `board.md`, `status.md`, and `handoff.md`;
-7. create one plan or dispatch packet for `协调师`;
-8. automatically create or wake the `协调师` thread for that packet.
+6. fill `project-map.md` with an end-first stage chain from the raw starting
+   state to the user's finish criteria;
+7. update `board.md`, `status.md`, and `handoff.md`;
+8. create one plan or dispatch packet for `协调师`;
+9. automatically create or wake the `协调师` thread for that packet.
 
 Do not create `协调师`, `执行人`, and `审核官` in parallel during startup. The
 team advances through a chain, and each next role is created or woken only
@@ -240,6 +245,72 @@ Default project-type examples:
   empty structure, slogan-like transitions, or unstable tone.
 - Other project types: `规划师` must derive domain-specific evidence gates from
   the user's stated target and treat those gates as the finish line.
+
+## Project Map Protocol
+
+Every team owns exactly one project map:
+
+```text
+project-map.md
+```
+
+The map lives in the team root. Do not create competing long-term map files
+such as `GOAL_MAP.md`, `TASK_MAP.md`, or `ROADMAP_MAP.md` for the same team.
+If an older map exists, `协调师` migrates the useful content into
+`project-map.md` and removes or marks the old file as non-current when safe.
+
+The map must use "start from the end" thinking: start with the user's final
+goal and finish criteria, then list the ordered path from the raw starting
+state to that end state. It is not just a status summary.
+
+Required `project-map.md` sections:
+
+- `以终为始的最终目标`
+- `从最初状态到终局的阶段链`
+- `当前所在阶段`
+- `进度追踪表`
+- `任务地图表`
+- `已完成步骤的缺陷/亮点/可沉淀经验`
+- `后续步骤的注意事项/评估指标`
+- `阻塞项和下一步协调动作`
+
+The progress tracking table must use these columns:
+
+```markdown
+| 阶段 | 当前状态 | 完成度 | 已完成证据 | 下一步 | 阻塞/风险 |
+| --- | --- | ---: | --- | --- | --- |
+```
+
+The task map table must use these columns:
+
+```markdown
+| 顺序 | 目标/任务 | 状态 | 当前证据 | 已完成复盘：缺陷或亮点 | 后续注意事项/评估指标 | 下一责任角色 |
+| ---: | --- | --- | --- | --- | --- | --- |
+```
+
+Ownership:
+
+- `项目：<目标>` creates a skeleton `project-map.md`.
+- `规划师` fills the end-first final goal, stage chain, initial task map, and
+  first evaluation indicators after the first plan exists.
+- `执行人` and `审核官` do not directly redesign the map. They provide evidence,
+  defects, highlights, review verdicts, and metrics through packets, status,
+  review, and feedback files.
+- `协调师` maintains the map after every task advance, route, review closeout,
+  blocker, or status request by reconciling `board.md`, `status.md`,
+  `review.md`, `feedback.md`, `message-queue.md`, packets, and handoff logs.
+
+Coordinator-facing output rule:
+
+- When `协调师` ends a turn, it must print the current progress tracking table
+  and a concise project map summary directly in the chat, not only provide a
+  file path.
+- The direct chat output must mark the current stage clearly.
+- Completed steps must include known defects, strong points, or reusable
+  lessons that should be accumulated for future work.
+- Future steps must include attention points or evaluation indicators.
+- If thread routing failed, the table and map summary are still required; do
+  not replace them with only a fallback copy block.
 
 ## Information Flow Protocol
 
@@ -485,15 +556,17 @@ Actions:
    `规划师` registers, writes project instructions, and creates an execution
    plan.
 6. Write `status.md` with the current phase.
-7. Write empty `planner-feedback.md` with a heading and no entries.
-8. Write empty `message-queue.md` with the queue table header.
-9. Write `thread-routing.md` with rows for `规划师`, `协调师`, `执行人`, and
+7. Write `project-map.md` as a skeleton with the required Project Map Protocol
+   sections and empty progress/task tables.
+8. Write empty `planner-feedback.md` with a heading and no entries.
+9. Write empty `message-queue.md` with the queue table header.
+10. Write `thread-routing.md` with rows for `规划师`, `协调师`, `执行人`, and
    `审核官`.
-10. Create `packets/`.
-11. If `create_thread` is available, automatically create a `规划师` thread with
+11. Create `packets/`.
+12. If `create_thread` is available, automatically create a `规划师` thread with
     a self-contained launch message. Record the returned thread id and title in
     `thread-routing.md`.
-12. Reply briefly with:
+13. Reply briefly with:
    - team_id;
    - team folder path;
    - `规划师` thread id when automatic launch succeeded;
@@ -573,6 +646,7 @@ Actions:
    - `team.md`
    - `board.md`
    - `status.md`
+   - `project-map.md`
    - `message-queue.md`
    - `thread-routing.md`
    - all files under `agents/`
@@ -583,8 +657,8 @@ Actions:
    `message-queue.md`.
 7. If the canonical identity is `规划师` and planner identity has not been
    established yet, complete the startup flow in the same turn: register,
-   create the first planning artifacts, create one plan packet, and automatically
-   route that packet to `协调师`.
+   create the first planning artifacts, fill the initial `project-map.md`,
+   create one plan packet, and automatically route that packet to `协调师`.
 8. Work according to the identity rules.
 9. Update the shared files.
 10. End with:
@@ -605,7 +679,7 @@ Continue the active team.
 Actions:
 
 1. Locate the active team.
-2. Read team state, board, message queue, and thread routing.
+2. Read team state, board, project map, message queue, and thread routing.
 3. Infer the next best identity:
    - if no `artifacts/project-instructions.md` exists, act as `规划师`;
    - if no plan exists, act as `规划师`;
@@ -624,8 +698,9 @@ Summarize the active team.
 
 Actions:
 
-1. Read `team.md`, `board.md`, `message-queue.md`, `thread-routing.md`,
-   `status.md`, `feedback.md`, `planner-feedback.md`, and `review.md`.
+1. Read `team.md`, `board.md`, `project-map.md`, `message-queue.md`,
+   `thread-routing.md`, `status.md`, `feedback.md`, `planner-feedback.md`, and
+   `review.md`.
 2. Report:
    - current phase;
    - active agents;
@@ -645,7 +720,7 @@ Actions:
 3. Check whether the user's success criteria have accepted evidence, or whether
    a true blocker/no-runnable-path state is documented.
 4. Summarize artifacts.
-5. Update `status.md` and `handoff.md`.
+5. Update `status.md`, `project-map.md`, and `handoff.md`.
 6. Clearly state remaining risks.
 
 Do not finalize a goal-until-done project merely because a phase, prototype, or
@@ -661,12 +736,17 @@ Purpose: move information and keep state consistent.
 Responsibilities:
 
 - maintain `message-queue.md`;
+- maintain `project-map.md` as the team's single end-first task map;
+- after every coordination turn, print a progress tracking table and project
+  map summary directly in the chat;
 - create one child packet per receiver when fan-out is needed;
 - send one direct thread message at a time;
 - track acknowledgement for sent packets;
 - maintain board locks and ownership fields;
 - resolve duplicate claims or stale claimed tasks;
 - keep `status.md` accurate after delivery and acknowledgements;
+- keep `project-map.md` aligned with `board.md`, `status.md`, `review.md`,
+  `feedback.md`, `message-queue.md`, packets, and handoff logs;
 - route packets to the next identity based on existing plan, review, or blocker
   content.
 - create or wake exactly one next-role Codex thread through Direct Thread
@@ -701,6 +781,9 @@ Responsibilities:
 - create or update `artifacts/project-instructions.md`;
 - create or update `artifacts/plan.md`;
 - create or update `artifacts/dispatch.md`;
+- create or update the initial `project-map.md` with the final goal, ordered
+  stage chain, progress tracking table, task map, defects/highlights, and
+  future evaluation indicators;
 - create one plan or dispatch packet for `协调师` after the initial plan exists
   and route it through Direct Thread Routing;
 - read and resolve entries in `planner-feedback.md`;
@@ -730,8 +813,9 @@ one response when possible:
 
 1. mark `确立规划师身份` as done;
 2. create the first project instructions, plan, and dispatch files;
-3. unblock the first useful downstream task;
-4. create one plan packet for `协调师` and automatically create or wake that
+3. fill the initial end-first `project-map.md`;
+4. unblock the first useful downstream task;
+5. create one plan packet for `协调师` and automatically create or wake that
    thread.
 
 `artifacts/dispatch.md` must include recipient-specific slices, for example:
@@ -898,6 +982,10 @@ block.
 ## Minimal Replies
 
 The user wants low typing. Keep replies short unless asked for details.
+
+Exception: `协调师` replies after task advance, route, review closeout, blocker
+handling, `状态`, or `收口` must include the current progress tracking table and
+project map summary in the chat. Do not replace this with only file paths.
 
 For `项目：` or `/team 项目：`, reply with only:
 

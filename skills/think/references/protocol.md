@@ -36,7 +36,8 @@ come from silently changing the user's problem.
 
 ## 3. Standards
 
-Create `standards.md` before role work begins:
+Create `standards.md`, `hard-standards.md`, and `standards-package.md` before
+final synthesis. `standards.md` captures the user's bar in prose:
 
 - user standards exactly as stated;
 - inferred success criteria;
@@ -44,10 +45,100 @@ Create `standards.md` before role work begins:
 - non-negotiable rejection criteria;
 - what counts as `accepted`, `needs-revision`, or `blocked`.
 
+`hard-standards.md` is mandatory for every non-trivial run. Each standard must
+have:
+
+- standard id;
+- scope;
+- hard requirement;
+- observable metric;
+- pass line;
+- hard reject line;
+- evidence required;
+- owner role;
+- dispatch target.
+
+`standards-package.md` is the portable packet a project team can import into
+its project instructions, project map, review gates, and next execution packet.
+
 The `Standards Judge` may tighten or clarify standards after the module split,
 but must not lower the user's bar for convenience.
 
-## 4. Modular Decomposition
+## 4. Logic Orchestration / 逻辑编排
+
+Create `logic-orchestration.md` before final synthesis for every non-trivial
+run. The Conductor owns this file.
+
+It must contain:
+
+- current phase state;
+- dependency graph;
+- invariants that must not be violated;
+- handoff matrix across roles or project surfaces;
+- next-action queue;
+- failure and recovery ledger;
+- open loops.
+
+When a required artifact, thread route, project dispatch, validator, or judge
+gate fails, record:
+
+- failure signal;
+- owner;
+- recovery action;
+- re-check evidence;
+- final status.
+
+No final synthesis is `accepted` while a critical open loop lacks a recovery
+decision.
+
+## 5. Engineering Governance / 工程治理
+
+Create `engineering-governance.md` before final synthesis for every
+non-trivial run that changes files, routes work into a project, or proposes a
+durable system update.
+
+It must contain:
+
+- change scope and non-scope;
+- owner and reviewer;
+- implementation plan;
+- validation matrix;
+- evidence ledger;
+- rollback plan;
+- drift and maintenance detector;
+- unresolved risks.
+
+Skill self-evolution runs must record the proposal, changed files, validator
+result, fresh-session generation check when templates/scripts changed, and
+rollback path before completion.
+
+## 6. Project Link And Dispatch
+
+When the thinking run is project-related, locate the project before final
+synthesis:
+
+- scan the current workspace;
+- scan `/Users/evander/Documents/**/teams/team-*`;
+- scan `/Users/evander/.openclaw/**/teams/team-*`;
+- inspect directories containing `project-map.md`, `team.md`, `board.md`,
+  `status.md`, `ROADMAP.md`, or `LATEST_STATE.md`;
+- score candidates by query match, evidence paths, team goal, project map,
+  current status, recency, and whether packet/queue execution surfaces exist.
+
+Record the candidate table and selected target in `project-link.md`. If
+multiple candidates exist, choose the highest score and record the reason. If
+no project is found, do not create one automatically; fill
+`project-start-prompt.md` with a copyable launch prompt that points to the run
+folder and required standards files.
+
+If a project is selected, fill `project-dispatch.md`. When the project has a
+team `message-queue.md`, create one project-side packet with purpose
+`plan_feedback` / `standard_update`. Default receiver is `协调师`; if no
+coordinator surface exists but planner exists, use `规划师`. The packet must
+require the project to update acceptance gates and create the next plan,
+execution, or review packet.
+
+## 7. Modular Decomposition
 
 For complex tasks, break the problem into modules:
 
@@ -61,7 +152,7 @@ For complex tasks, break the problem into modules:
 Each module should be small enough for independent red-team, evidence, and
 judge review.
 
-## 5. Judgment
+## 8. Judgment
 
 Each role must make an independent judgment before reading the other roles'
 arguments. The judgment must contain:
@@ -72,7 +163,7 @@ arguments. The judgment must contain:
 - confidence level;
 - what would change the judgment.
 
-## 6. Falsification
+## 9. Falsification
 
 For every serious claim, generate the strongest counter-case:
 
@@ -84,7 +175,7 @@ For every serious claim, generate the strongest counter-case:
 
 Do not soften the counter-case to protect the original idea.
 
-## 7. Experiment
+## 10. Experiment
 
 Turn uncertainty into the smallest useful experiment:
 
@@ -98,19 +189,25 @@ Turn uncertainty into the smallest useful experiment:
 Prefer experiments that expose reality quickly over plans that merely feel
 complete.
 
-## 8. Judge Verdict
+## 11. Judge Verdict
 
-Before final synthesis, `Standards Judge` must write `verdict.md`:
+Before final synthesis, `Standards Judge` must write both
+`agents/standards-judge.md` and `verdict.md`:
 
 - accepted modules;
 - rejected modules;
 - missing evidence;
 - revision requests;
+- logic orchestration audit;
+- engineering governance audit;
 - final status.
 
-The Conductor cannot call the run complete without `accepted`.
+The Conductor cannot call the run complete without `accepted`. `accepted` means
+the synthesis, hard standards, evidence gates, rejection lines, next experiment,
+logic orchestration, engineering governance, and project dispatch/startup path
+all meet the bar.
 
-## 9. Feedback
+## 12. Feedback
 
 After an experiment or new evidence, update:
 
@@ -120,7 +217,7 @@ After an experiment or new evidence, update:
 - which model became more or less useful;
 - which assumption should be retired.
 
-## 10. Update
+## 13. Update
 
 Write proposed updates to `evolution-proposal.md`. Updates can target:
 
@@ -132,9 +229,13 @@ Write proposed updates to `evolution-proposal.md`. Updates can target:
 - workflow order.
 
 Do not write changes into the skill itself until the user explicitly approves
-the proposal.
+the proposal. If writeback is approved, track the changed files, validation
+evidence, and rollback plan in `engineering-governance.md`. When validator,
+generator, quality-gate, role-prompt, or required-artifact contracts changed,
+also run `validate_models.py --self-test` and record the negative-fixture
+result.
 
-## 11. Next Input Loop
+## 14. Next Input Loop
 
 End every run with the next best input for the system:
 
