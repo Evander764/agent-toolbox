@@ -17,6 +17,8 @@ outside one local project.
   Codex agent windows for adversarial reasoning, modular decomposition, strict
   standards judging, first principles, entropy analysis, Munger-style mental
   models, falsification, experiments, and reviewable self-evolution proposals.
+- `skills/xhs-auto-deploy`: a Xiaohongshu automation routing skill with local
+  readiness checks and reusable download helpers.
 
 ### Tools
 
@@ -85,3 +87,6 @@ The skill creates a structured thinking loop:
   project data.
 - Prefer short names and copyable commands.
 - Add a short README for each new skill or tool.
+
+See [`CATALOG.md`](CATALOG.md) for the public inventory and
+[`MIGRATIONS.md`](MIGRATIONS.md) for standalone-repository provenance.
