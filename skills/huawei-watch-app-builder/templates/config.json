@@ -1,0 +1,65 @@
+{
+  "app": {
+    "bundleName": "com.example.watchapp",
+    "vendor": "example",
+    "version": {
+      "code": 1000000,
+      "name": "1.0.0"
+    }
+  },
+  "deviceConfig": {},
+  "module": {
+    "deviceType": [
+      "liteWearable"
+    ],
+    "distro": {
+      "deliveryWithInstall": true,
+      "moduleName": "entry",
+      "moduleType": "entry"
+    },
+    "abilities": [
+      {
+        "name": ".MainAbility",
+        "srcLanguage": "js",
+        "srcPath": "MainAbility",
+        "icon": "$media:icon",
+        "description": "$string:MainAbility_desc",
+        "label": "$string:MainAbility_label",
+        "type": "page"
+      }
+    ],
+    "js": [
+      {
+        "pages": [
+          "pages/index/index"
+        ],
+        "name": ".MainAbility",
+        "window": {
+          "designWidth": 408
+        }
+      }
+    ],
+    "reqPermissions": [
+      {
+        "name": "ohos.permission.ACCELEROMETER",
+        "reason": "$string:perm_sensor",
+        "usedScene": {
+          "ability": [
+            ".MainAbility"
+          ],
+          "when": "inuse"
+        }
+      },
+      {
+        "name": "ohos.permission.VIBRATE",
+        "reason": "$string:perm_vibrate",
+        "usedScene": {
+          "ability": [
+            ".MainAbility"
+          ],
+          "when": "inuse"
+        }
+      }
+    ]
+  }
+}

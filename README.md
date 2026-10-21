@@ -17,6 +17,9 @@ outside one local project.
   Codex agent windows for adversarial reasoning, modular decomposition, strict
   standards judging, first principles, entropy analysis, Munger-style mental
   models, falsification, experiments, and reviewable self-evolution proposals.
+- `skills/huawei-watch-app-builder`: complete development, UI/UX architecture,
+  dual-layer signing, and automated wireless sideloading workflow for Huawei
+  Lite Wearables (HUAWEI WATCH FIT 5, FIT 3/4, WATCH GT series).
 
 ### Tools
 
@@ -26,57 +29,23 @@ outside one local project.
 
 - `snippets/`: small reusable prompts, templates, and code fragments.
 
-## Current Skill: team
+## Skills Overview
 
+### `team`
 Use:
-
 ```text
 /team 项目：<目标>
 ```
 
-Then open a new chat and send:
-
-```text
-/team 规划师
-团队：<team_id>
-```
-
-Without an explicit role, `/team` defaults to `规划师`, but the first role prompt
-should include the team id so the new chat does not rely on hidden state. The
-planner creates the first project plan and gives copyable prompts for the
-remaining roles:
-
-```text
-/team 协调师
-团队：<team_id>
-
-/team 执行人
-团队：<team_id>
-
-/team 审核官
-团队：<team_id>
-```
-
-The workflow keeps durable state in a shared team folder and uses packet-based
-handoffs so agents do not depend on hidden chat history.
-
-## Current Skill: think
-
+### `think`
 Use:
-
 ```text
 $think <goal or question>
 ```
 
-The skill creates a structured thinking loop:
-
-- compress the raw input into a problem brief;
-- blockize facts, assumptions, judgments, variables, risks, and actions;
-- create role-specific Codex windows when thread tools are available;
-- run independent standards, decomposition, red-team, and evidence/model lenses;
-- force falsification and anti-consensus checks;
-- require a strict judge verdict before final synthesis;
-- produce a smallest useful experiment and a reviewable update proposal.
+### `huawei-watch-app-builder`
+Use:
+Follow `skills/huawei-watch-app-builder/SKILL.md` to build, dual-layer sign, and sideload Lite Wearable apps on Huawei Watches.
 
 ## Repository Policy
 
